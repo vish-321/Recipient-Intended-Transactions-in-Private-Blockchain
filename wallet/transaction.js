@@ -6,6 +6,7 @@ class Transaction {
         this.id = ChainUtil.id();
         this.input = null ;
         this.outputs = [] ;
+        this.recipient_signatures = {} ;
     }
 
     update (senderWallet , recipient , amount){
@@ -18,13 +19,15 @@ class Transaction {
 
         senderOutput.amount = senderOutput.amount - amount ;
         this.outputs.push({amount , address :recipient});
+        this.recipient_signatures ={} ;
         Transaction.signTransaction(this , senderWallet);
 
         return this ;
     }
 
-    static newTransaction(senderWallet , recipient , amount){
+    static newTransaction(senderWallet , recipient , amount ,bc ){
         const transaction = new this ();
+        senderWallet.balance = senderWallet.calculateBalance(bc);
 
         if (amount > senderWallet.balance){
             console.log(`Amount : ${amount} excceds senders balance`);
@@ -48,14 +51,79 @@ class Transaction {
             address : senderWallet.publicKey ,
             signature : senderWallet.sign(ChainUtil.hash(transaction.outputs))
         };
+        const address = senderWallet.publicKey ;
+        transaction.recipient_signatures[address] = senderWallet.sign(ChainUtil.hash(transaction.outputs));
     }
 
-    static verifyTransaction (transaction){
+    static verifyTransactionByValidator (transaction){
+
+        for (const recipient of transaction.outputs){
+
+            const address = recipient.address ;
+            //console.log(address)
+            //console.log (transaction.recipient_signatures.address) ;
+            if (!transaction.recipient_signatures[address])
+                return false ;
+
+            const isValidRecipient = ChainUtil.verifySignature(
+                address ,
+                transaction.recipient_signatures[address] ,
+                ChainUtil.hash(transaction.outputs)
+            );
+
+            if (!isValidRecipient) {
+                return false ;
+            }
+        }
+
         return ChainUtil.verifySignature(
             transaction.input.address ,
             transaction.input.signature ,
             ChainUtil.hash(transaction.outputs)
         );
+    }
+
+    static verifyTransactionByReceiver (transaction , recipientWallet , bc){
+        //This method checks if wallet is receiver of transaction and checks if transaction is valid
+        //if both conditions are true it adds wallet signature in transaction and return true
+        //else return false
+
+        const senderBalance = ChainUtil.calculateBalanceByPublicKey(bc , transaction.input.address);
+
+        if (senderBalance != transaction.input.amount){
+            console.log(`Invalid transaction from ${transaction.input.address}`);
+            return false ;
+        }
+
+        const outputTotal = transaction.outputs.reduce ( (total , output ) =>{
+            return total + output.amount ;
+        } ,0);
+
+        if (transaction.input.amount !== outputTotal){
+            console.log(`Invalid transaction from ${transaction.input.address}`);
+            return false ;
+        }
+
+        const isSenderSignatureValid = ChainUtil.verifySignature(
+            transaction.input.address ,
+            transaction.input.signature ,
+            ChainUtil.hash(transaction.outputs)
+        );
+
+        if ( !isSenderSignatureValid){
+            console.log(`Invalid transaction from ${transaction.input.address}`);
+            return false ;
+        }
+
+        for (const recipient of transaction.outputs){
+            if (recipient.address == recipientWallet.publicKey && !transaction.recipient_signatures[recipientWallet.publicKey]){
+                transaction.recipient_signatures[recipientWallet.publicKey]= recipientWallet.sign(ChainUtil.hash(transaction.outputs));
+                return true ;
+            }
+        }
+
+        return false ;
+
     }
 }
 

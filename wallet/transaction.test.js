@@ -1,15 +1,17 @@
 const Transaction = require('./transaction');
 const Wallet = require('./index');
+const Blockchain = require('../blockchain');
 //const { MINING_REWARD } = require('../config');
 
 describe('Transaction', () => {
-  let transaction, wallet, recipient, amount;
+  let transaction, wallet, recipient, amount , bc;
 
   beforeEach(() => {
     wallet = new Wallet();
     amount = 50;
     recipient = 'r3c1p13nt';
-    transaction = Transaction.newTransaction(wallet, recipient, amount);
+    bc = new Blockchain();
+    transaction = Transaction.newTransaction(wallet, recipient, amount ,bc );
   });
 
   it('outputs the `amount` subtracted from the wallet balance', () => {
@@ -25,7 +27,7 @@ describe('Transaction', () => {
   describe('transacting with an amount that exceeds the balance', () => {
     beforeEach(() => {
       amount = 50000;
-      transaction = Transaction.newTransaction(wallet, recipient, amount);
+      transaction = Transaction.newTransaction(wallet, recipient, amount , bc);
     });
 
     it('does not create the transaction', () => {
@@ -38,12 +40,13 @@ describe('Transaction', () => {
   });
 
   it('validates a valid transaction', () => {
-    expect(Transaction.verifyTransaction(transaction)).toBe(true);
+    expect(Transaction.verifyTransactionByValidator(transaction)).toBe(false);
+    //needs to update this testacase as broadcasting is done
   });
 
   it('invalidates a corrupt transaction', () => {
     transaction.outputs[0].amount = 50000;
-    expect(Transaction.verifyTransaction(transaction)).toBe(false);
+    expect(Transaction.verifyTransactionByValidator(transaction)).toBe(false);
   });
 
   describe('and updating a transaction', () => {

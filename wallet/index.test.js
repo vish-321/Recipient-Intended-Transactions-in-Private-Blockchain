@@ -18,12 +18,12 @@ describe('Wallet', () => {
     beforeEach(() => {
       sendAmount = 50;
       recipient = 'r4nd0m-4ddr355';
-      transaction = wallet.createTransaction(recipient, sendAmount,  tp);
+      transaction = wallet.createTransaction(recipient, sendAmount,  tp, bc);
     });
 
     describe('and doing the same transaction', () => {
       beforeEach(() => {
-        wallet.createTransaction(recipient, sendAmount,  tp);
+        wallet.createTransaction(recipient, sendAmount,  tp , bc);
       });
 
       it('doubles the `sendAmount` subtracted from the wallet balance', () => {
