@@ -56,13 +56,12 @@ class P2pServer {
                     this.blockchain.replaceChain(data.chain);
                     break;
                 case MESSAGE_TYPES.transaction :
+                    this.transactionPool.updateOrAddTransaction (data.transaction);
                     //assume we differentiate validator based on ip and port
                     // here we are on local host so we will just use port
                     if (P2P_PORT != 5003 && Transaction.verifyTransactionByReceiver(data.transaction,this.wallet , this.blockchain) ){
                         this.broadcastTransaction(data.transaction);
                     }
-
-                    this.transactionPool.updateOrAddTransaction (data.transaction);
                     break;
                 case MESSAGE_TYPES.clear_transaction :
                     this.transactionPool.clear();

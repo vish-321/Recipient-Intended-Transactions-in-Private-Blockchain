@@ -55,7 +55,7 @@ describe('Transaction', () => {
     beforeEach(() => {
       nextAmount = 20;
       nextRecipient = 'n3xt-4ddr355';
-      transaction = transaction.update(wallet, nextRecipient, nextAmount);
+      transaction = Transaction.update(wallet, nextRecipient, nextAmount ,transaction);
     });
 
     it(`subtracts the next amount from the sender's output`, () => {

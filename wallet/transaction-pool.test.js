@@ -19,7 +19,7 @@ describe('TransactionPool', () => {
 
   it('updates a transaction in the pool', () => {
     const oldTransaction = JSON.stringify(transaction);
-    const newTransaction = transaction.update(wallet, 'foo-4ddr355', 40);
+    const newTransaction = Transaction.update(wallet, 'foo-4ddr355', 40 ,transaction);
     tp.updateOrAddTransaction(newTransaction);
 
     expect(JSON.stringify(tp.transactions.find(t => t.id === newTransaction.id)))

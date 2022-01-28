@@ -9,8 +9,8 @@ class Transaction {
         this.recipient_signatures = {} ;
     }
 
-    update (senderWallet , recipient , amount){
-        const senderOutput = this.outputs.find (output => output.address == senderWallet.publicKey);
+    static update (senderWallet , recipient , amount , transaction){
+        const senderOutput = transaction.outputs.find (output => output.address == senderWallet.publicKey);
 
         if ( amount > senderOutput.balance ){
             console.log(`Amount : ${amount} excceds senders balance`);
@@ -18,11 +18,11 @@ class Transaction {
         }
 
         senderOutput.amount = senderOutput.amount - amount ;
-        this.outputs.push({amount , address :recipient});
-        this.recipient_signatures ={} ;
-        Transaction.signTransaction(this , senderWallet);
+        transaction.outputs.push({amount , address :recipient});
+        transaction.recipient_signatures ={} ;
+        Transaction.signTransaction(transaction , senderWallet);
 
-        return this ;
+        return transaction ;
     }
 
     static newTransaction(senderWallet , recipient , amount ,bc ){
